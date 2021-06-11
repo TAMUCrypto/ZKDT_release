@@ -1,0 +1,25 @@
+|- 3 <= 245
+| |- class: Iris-setosa
+|- 3 >  245
+| |- 4 <= 175
+| | |- 3 <= 495
+| | | |- 4 <= 165
+| | | | |- class: Iris-versicolor
+| | | |- 4 >  165
+| | | | |- class: Iris-virginica
+| | |- 3 >  495
+| | | |- 4 <= 155
+| | | | |- class: Iris-virginica
+| | | |- 4 >  155
+| | | | |- 1 <= 695
+| | | | | |- class: Iris-versicolor
+| | | | |- 1 >  695
+| | | | | |- class: Iris-virginica
+| |- 4 >  175
+| | |- 3 <= 485
+| | | |- 2 <= 310
+| | | | |- class: Iris-virginica
+| | | |- 2 >  310
+| | | | |- class: Iris-versicolor
+| | |- 3 >  485
+| | | |- class: Iris-virginica
