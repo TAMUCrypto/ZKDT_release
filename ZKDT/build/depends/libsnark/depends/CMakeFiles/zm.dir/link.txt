@@ -1,0 +1,2 @@
+/usr/bin/ar qc libzm.a  CMakeFiles/zm.dir/ate-pairing/src/zm.cpp.o CMakeFiles/zm.dir/ate-pairing/src/zm2.cpp.o
+/usr/bin/ranlib libzm.a

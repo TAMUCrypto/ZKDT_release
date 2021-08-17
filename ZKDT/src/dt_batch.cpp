@@ -17,8 +17,9 @@
 using namespace libsnark;
 
 // tree size is exponential in depth
-template <class FieldT>
+template <typename ppT>
 void test_synthetic_dt_batch(int depth = 5, int batch_size = 128) {
+    typedef libff::Fr<ppT> FieldT;
     std::cout << "Generate R1CS for synthetic DT: " << std::endl;
     std::cout << "Depth: " << depth << std::endl;
     std::cout << "Batch size: " << batch_size << std::endl;
@@ -46,6 +47,8 @@ void test_synthetic_dt_batch(int depth = 5, int batch_size = 128) {
     std::cout << "N_constraints: " << pb.num_constraints() << std::endl;
     std::cout << "N_variables: " << pb.num_variables() << std::endl;
     std::cout << "Satisfied?: " << pb.is_satisfied() << std::endl;
+
+    run_r1cs_gg_ppzksnark<ppT>(pb);
 }
 
 unsigned max_batch_size = 500;
@@ -99,8 +102,9 @@ void read_dataset(const std::string& filename, std::vector<std::vector<unsigned>
     }
 }
 
-template <class FieldT>
+template <typename ppT>
 void test_real_dt_batch() {
+    typedef libff::Fr<ppT> FieldT;
     unsigned selector = 0;// [0, 1, 2, 3, 4, 5]
 
     std::cout << "Generate R1CS for ";
@@ -156,13 +160,15 @@ void test_real_dt_batch() {
     std::cout << "N_constraints: " << pb.num_constraints() << std::endl;
     std::cout << "N_variables: " << pb.num_variables() << std::endl;
     std::cout << "Satisfied?: " << pb.is_satisfied() << std::endl;
+
+    run_r1cs_gg_ppzksnark<ppT>(pb);
 }
 
 
 int main() {
     default_r1cs_gg_ppzksnark_pp::init_public_params();
     swifft::init_swifft();
-    test_synthetic_dt_batch<libff::Fr<default_r1cs_gg_ppzksnark_pp>>();
+    test_synthetic_dt_batch<default_r1cs_gg_ppzksnark_pp>();
     std::cout << std::endl;
-    test_real_dt_batch<libff::Fr<default_r1cs_gg_ppzksnark_pp>>();
+    test_real_dt_batch<default_r1cs_gg_ppzksnark_pp>();
 }

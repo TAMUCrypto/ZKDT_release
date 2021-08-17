@@ -13,13 +13,15 @@
 #include "hash.h"
 #include "DT/compile.h"
 #include "gadgets/swifft.h"
+#include "ZKP/groth16.h"
 
 using namespace libsnark;
 
 // the size of a r1cs scales almost linearly with the depth parameters
 // in this synthetic example, we require that n_vars >= depth
-template<class FieldT>
+template<typename ppT>
 void test_synthetic_dt_path(int depth = 100) {
+    typedef libff::Fr<ppT> FieldT;
     std::cout << "Generate R1CS for synthetic DT: " << std::endl;
     std::cout << "Depth: " << depth << std::endl;
 
@@ -44,6 +46,8 @@ void test_synthetic_dt_path(int depth = 100) {
     std::cout << "N_constraints: " << pb.num_constraints() << std::endl;
     std::cout << "N_variables: " << pb.num_variables() << std::endl;
     std::cout << "Satisfied?: " << pb.is_satisfied() << std::endl;
+
+    run_r1cs_gg_ppzksnark<ppT>(pb);
 }
 
 unsigned target_batch_size = 500;
@@ -97,8 +101,9 @@ void read_dataset(const std::string& filename, std::vector<std::vector<unsigned>
     }
 }
 
-template <class FieldT>
+template <typename ppT>
 void test_real_dt_path() {
+    typedef libff::Fr<ppT> FieldT;
     unsigned selector = 3;// [0, 1, 2, 3, 4, 5]
 
     std::cout << "Generate R1CS for ";
@@ -154,6 +159,8 @@ void test_real_dt_path() {
     std::cout << "N_constraints: " << pb.num_constraints() << std::endl;
     std::cout << "N_variables: " << pb.num_variables() << std::endl;
     std::cout << "Satisfied?: " << pb.is_satisfied() << std::endl;
+
+    run_r1cs_gg_ppzksnark<ppT>(pb);
 }
 
 
@@ -161,6 +168,6 @@ int main() {
     default_r1cs_gg_ppzksnark_pp::init_public_params();
     swifft::init_swifft();
 
-    test_synthetic_dt_path<libff::Fr<default_r1cs_gg_ppzksnark_pp>>();
-    test_real_dt_path<libff::Fr<default_r1cs_gg_ppzksnark_pp>>();
+    test_synthetic_dt_path<default_r1cs_gg_ppzksnark_pp>();
+    test_real_dt_path<default_r1cs_gg_ppzksnark_pp>();
 }

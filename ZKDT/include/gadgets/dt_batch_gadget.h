@@ -298,7 +298,7 @@ private:
     unsigned n_frequency_bits;
     std::vector<unsigned> nodes_count;
     pb_variable <FieldT> *frequency_in_bits;
-    
+
 private:
     DecompositionCheckGadget <FieldT> *decompositionCheckGadgets;
     SwifftGadget <FieldT> *swifftGadget;
@@ -337,7 +337,7 @@ private:
         }
         n_frequency_bits = log(all_paths.size()) / log(2) + 1;
     }
-    
+
     void _init_pb_vars() {
 
         std::string prefix = this->annotation_prefix;
@@ -449,7 +449,7 @@ private:
 
         unsigned index, length;
         treeLinearCombinationGadget =
-                (LinearCombinationGadget <FieldT> *) malloc(sizeof(LinearCombinationGadget < FieldT >) * dt.n_nodes) ;
+                (LinearCombinationGadget <FieldT> *) malloc(sizeof(LinearCombinationGadget < FieldT > ) * dt.n_nodes);
         for (index = 0; index < dt.n_nodes; ++index) {
             if (index < dt.root->non_leaf_size) {
                 tree_nodes_values[index] = new pb_variable<FieldT>[5];
@@ -469,14 +469,15 @@ private:
             }
 
             new(treeLinearCombinationGadget + index) LinearCombinationGadget<FieldT>(this->pb, tree_nodes_values[index],
-                                                                                     coef_array, tree_nodes_terms[index], length,
+                                                                                     coef_array,
+                                                                                     tree_nodes_terms[index], length,
                                                                                      this->annotation_prefix +
                                                                                      "tree_linear_combination_gadgets" +
                                                                                      std::to_string(index));
         }
 
         pathLinearCombinationGadget =
-                (LinearCombinationGadget <FieldT> *) malloc(sizeof(LinearCombinationGadget < FieldT >) * n_path_nodes);
+                (LinearCombinationGadget <FieldT> *) malloc(sizeof(LinearCombinationGadget < FieldT > ) * n_path_nodes);
         index = 0;
         for (int i = 0; i < all_paths.size(); ++i) {
             for (int j = 0; j < all_paths[i].size(); ++j) {
@@ -495,11 +496,14 @@ private:
                     path_nodes_values[index][4] = pathPredictionGadget[i].r_node_id[j];
                     length = 5;
                 }
-                new (pathLinearCombinationGadget + index) LinearCombinationGadget<FieldT>(this->pb, path_nodes_values[index],
-                                                                                          coef_array, path_nodes_terms[index], length,
-                                                                                          this->annotation_prefix +
-                                                                                          "path_linear_combination_gadgets" +
-                                                                                          std::to_string(index));
+                new(pathLinearCombinationGadget + index) LinearCombinationGadget<FieldT>(this->pb,
+                                                                                         path_nodes_values[index],
+                                                                                         coef_array,
+                                                                                         path_nodes_terms[index],
+                                                                                         length,
+                                                                                         this->annotation_prefix +
+                                                                                         "path_linear_combination_gadgets" +
+                                                                                         std::to_string(index));
                 index++;
             }
         }
@@ -725,7 +729,9 @@ public:
     std::vector <std::vector<unsigned>> data;
     std::vector <std::vector<DTNode *>> all_paths;
 
-    DTBatchGadget(protoboard <FieldT> &pb, DT &dt_, std::vector <std::vector<unsigned>> &data_, FieldT &coef_,
+    DTBatchGadget(protoboard <FieldT> &pb, DT &dt_, std::vector <std::vector<unsigned>> &data_,
+            std::vector <unsigned> labels, unsigned n_correct,
+            FieldT &coef_,
                   FieldT &challenge_point_, const std::string &annotation = "")
             : gadget<FieldT>(pb, annotation), dt(dt_), data(data_) {
 
