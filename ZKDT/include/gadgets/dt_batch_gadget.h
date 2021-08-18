@@ -11,7 +11,6 @@ template<typename FieldT>
 class PathPredictionGadget : public gadget<FieldT> {
 
 public:
-
     // public input
     pb_variable <FieldT> *raw_vars;
     pb_variable <FieldT> *raw_index;
@@ -39,6 +38,9 @@ public:
     pb_variable <FieldT> *diff_decomposition;
 
     DecompositionCheckGadget <FieldT> *decompositionCheckGadgets;
+    EqualityCheckGadget <FieldT> *equalityCheckGadget;
+
+    pb_variable <FieldT> correct;
 
     void _init_pb_vars() {
         auto &prefix = this->annotation_prefix;
@@ -68,6 +70,8 @@ public:
         _init_pb_array(this->pb, diff, path_length - 1, prefix + std::string("diff"));
         _init_pb_array(this->pb, diff_decomposition, (path_length - 1) * 32,
                        prefix + std::string("diff_decomposition"));
+
+        correct.allocate(this->pb, prefix + std::string("correct"));
     }
 
     void _decompose(unsigned value, pb_variable <FieldT> *bits) {
@@ -112,7 +116,7 @@ public:
             add_r1cs(comparison_results[i], l_node_id[i] - r_node_id[i], node_id[i + 1] - r_node_id[i]);
             // 1 (v_{i+1}.node_id - v_{i}.l_node_id) + 0 (v_{i+1}.node_id - v_{i}.r_node_id) = 0;
         }
-        add_r1cs(class_label, 1, target_class_label);
+        equalityCheckGadget->generate_r1cs_constraints();
     }
 
     void _dt_prediction_generate_r1cs_witness() {
@@ -127,6 +131,8 @@ public:
         for (int i = 0; i < path_length - 1; ++i) {
             comparisonGadgets[i].generate_r1cs_witness();
         }
+
+        equalityCheckGadget->generate_r1cs_witness(target_label, predicted_label);
     }
 
     void _general_generate_r1cs_witness() {
@@ -145,7 +151,7 @@ public:
         }
 
         eval(node_id[path_length - 1]) = ((DTLeaf *) path[path_length - 1])->node_id;
-        eval(class_label) = ((DTLeaf *) path[path_length - 1])->class_id;
+        eval(class_label) = predicted_label;
     }
 
     unsigned *_variable_count;
@@ -169,13 +175,15 @@ public:
     std::vector<unsigned int> &values;
     std::vector<DTNode *> path;
     int n_vars, path_length;
+    unsigned target_label, predicted_label;
 
     PathPredictionGadget(protoboard <FieldT> &pb, DT &dt_, std::vector<unsigned int> &values_,
-                         unsigned int target_class_,
+                         unsigned int target_label_,
                          pb_variable <FieldT> &coef_, pb_variable <FieldT> &challenge_point_,
                          const std::string &annotation = "")
-            : gadget<FieldT>(pb, annotation), dt(dt_), values(values_) {
+            : gadget<FieldT>(pb, annotation), dt(dt_), values(values_), target_label(target_label_) {
         path = dt.predict(values_);
+        predicted_label = ((DTLeaf*) path.back())->class_id;
         n_vars = values.size();
         path_length = path.size();
 
@@ -185,7 +193,8 @@ public:
         // assign some public inputs and randomness here.
         coef = coef_;
         challenge_point = challenge_point_;
-        pb.val(target_class_label) = target_class_;
+        pb.val(target_class_label) = target_label;
+        pb.val(correct) = unsigned(predicted_label == target_label);
 
         pairwiseMultiSetGadget = new PairwiseMultiSetGadget<FieldT>(pb, raw_index, raw_vars, permuted_index,
                                                                     permuted_vars,
@@ -204,7 +213,9 @@ public:
 
         decompositionCheckGadgets = new DecompositionCheckGadget<FieldT>(pb, diff, diff_decomposition,
                                                                          path_length - 1, 32,
-                                                                         "decomposition_check_gadget");
+                                                                         annotation + "decomposition_check_gadget");
+        equalityCheckGadget = new EqualityCheckGadget<FieldT>(pb, target_class_label, class_label,
+                                                              correct, 32, annotation + "equality_check_gadget");
     }
 
     ~PathPredictionGadget() {
@@ -295,6 +306,9 @@ private:
     pb_variable <FieldT> **path_nodes_values;
     pb_variable <FieldT> *path_nodes_terms;
 
+    pb_variable <FieldT> *target_labels;
+    pb_variable <FieldT> n_correct_var;
+
     unsigned n_frequency_bits;
     std::vector<unsigned> nodes_count;
     pb_variable <FieldT> *frequency_in_bits;
@@ -380,6 +394,9 @@ private:
         _init_pb_array(this->pb, path_nodes_terms, n_path_nodes, prefix + "path_nodes_terms");
 
         _init_pb_array(this->pb, frequency_in_bits, n_frequency_bits * dt.n_nodes, prefix + "frequency_in_bits");
+
+        _init_pb_array(this->pb, target_labels, data.size(), prefix + "target_labels");
+        n_correct_var.allocate(this->pb, prefix + "n_correct_var");
     }
 
     void _init_sub_gadgets() {
@@ -441,7 +458,7 @@ private:
         for (int i = 0; i < data.size(); ++i) {
             std::vector<unsigned> &single_data = data[i];
             new(pathPredictionGadget + i) PathPredictionGadget<FieldT>(this->pb, dt, single_data,
-                                                                       ((DTLeaf *) all_paths[i].back())->class_id,
+                                                                       labels[i],
                                                                        coef, challenge_point, this->annotation_prefix +
                                                                                               "path_prediction_gadget" +
                                                                                               std::to_string(i));
@@ -520,6 +537,14 @@ private:
         for (int i = 0; i < N_BITS_NODE_ATTR; ++i) {
             eval(bits[i]) = (value >> (N_BITS_NODE_ATTR - 1 - i)) & 1U;
         }
+    }
+
+    void _general_constraints() {
+        auto sum = linear_combination<FieldT>();
+        for (int i = 0; i < data.size(); ++i) {
+            sum = sum + pathPredictionGadget[i].correct;
+        }
+        add_r1cs(sum, 1, n_correct_var);
     }
 
     void _general_witness() {
@@ -725,22 +750,26 @@ private:
 public:
 
     unsigned n_path_nodes;
+    unsigned n_correct;
     DT &dt;
-    std::vector <std::vector<unsigned>> data;
+    std::vector <std::vector<unsigned>> &data;
+    std::vector <unsigned> &labels;
     std::vector <std::vector<DTNode *>> all_paths;
 
     DTBatchGadget(protoboard <FieldT> &pb, DT &dt_, std::vector <std::vector<unsigned>> &data_,
-            std::vector <unsigned> labels, unsigned n_correct,
-            FieldT &coef_,
+                  std::vector<unsigned> labels_,
+                  FieldT &coef_,
                   FieldT &challenge_point_, const std::string &annotation = "")
-            : gadget<FieldT>(pb, annotation), dt(dt_), data(data_) {
+            : gadget<FieldT>(pb, annotation), dt(dt_), data(data_), labels(labels_) {
 
         n_path_nodes = 0;
+        n_correct = 0;
         for (int i = 0; i < data.size(); ++i) {
             std::vector<unsigned> &single_data = data[i];
             std::vector < DTNode * > path_nodes = dt.predict(single_data);
             n_path_nodes += path_nodes.size();
             all_paths.push_back(path_nodes);
+            n_correct += labels[i] == ((DTLeaf*) (path_nodes.back()))->class_id;
         }
         _init_id_map();
         _count();
@@ -750,9 +779,11 @@ public:
 
         eval(coef) = coef_;
         eval(challenge_point) = challenge_point_;
+        eval(n_correct_var) = n_correct;
     }
 
     void generate_r1cs_constraints() {
+        _general_constraints();
         _decomposition_constraints();
         _hash_constraints();
         _path_constraints();

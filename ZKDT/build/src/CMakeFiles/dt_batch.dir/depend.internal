@@ -116,11 +116,14 @@ src/CMakeFiles/dt_batch.dir/dt_batch.cpp.o
  ../depends/libsnark/libsnark/relations/constraint_satisfaction_problems/r1cs/r1cs.tcc
  ../depends/libsnark/libsnark/relations/variable.hpp
  ../depends/libsnark/libsnark/relations/variable.tcc
+ ../depends/libsnark/libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/examples/run_r1cs_gg_ppzksnark.hpp
+ ../depends/libsnark/libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/examples/run_r1cs_gg_ppzksnark.tcc
  ../depends/libsnark/libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp
  ../depends/libsnark/libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.tcc
  ../depends/libsnark/libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark_params.hpp
  ../include/DT/DT.h
  ../include/DT/compile.h
+ ../include/ZKP/groth16.h
  ../include/gadgets/common.h
  ../include/gadgets/dt_batch_gadget.h
  ../include/gadgets/swifft.h

@@ -115,11 +115,14 @@ src/CMakeFiles/dt_batch.dir/dt_batch.cpp.o: ../depends/libsnark/libsnark/relatio
 src/CMakeFiles/dt_batch.dir/dt_batch.cpp.o: ../depends/libsnark/libsnark/relations/constraint_satisfaction_problems/r1cs/r1cs.tcc
 src/CMakeFiles/dt_batch.dir/dt_batch.cpp.o: ../depends/libsnark/libsnark/relations/variable.hpp
 src/CMakeFiles/dt_batch.dir/dt_batch.cpp.o: ../depends/libsnark/libsnark/relations/variable.tcc
+src/CMakeFiles/dt_batch.dir/dt_batch.cpp.o: ../depends/libsnark/libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/examples/run_r1cs_gg_ppzksnark.hpp
+src/CMakeFiles/dt_batch.dir/dt_batch.cpp.o: ../depends/libsnark/libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/examples/run_r1cs_gg_ppzksnark.tcc
 src/CMakeFiles/dt_batch.dir/dt_batch.cpp.o: ../depends/libsnark/libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp
 src/CMakeFiles/dt_batch.dir/dt_batch.cpp.o: ../depends/libsnark/libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.tcc
 src/CMakeFiles/dt_batch.dir/dt_batch.cpp.o: ../depends/libsnark/libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark_params.hpp
 src/CMakeFiles/dt_batch.dir/dt_batch.cpp.o: ../include/DT/DT.h
 src/CMakeFiles/dt_batch.dir/dt_batch.cpp.o: ../include/DT/compile.h
+src/CMakeFiles/dt_batch.dir/dt_batch.cpp.o: ../include/ZKP/groth16.h
 src/CMakeFiles/dt_batch.dir/dt_batch.cpp.o: ../include/gadgets/common.h
 src/CMakeFiles/dt_batch.dir/dt_batch.cpp.o: ../include/gadgets/dt_batch_gadget.h
 src/CMakeFiles/dt_batch.dir/dt_batch.cpp.o: ../include/gadgets/swifft.h

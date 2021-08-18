@@ -610,5 +610,62 @@ public:
     }
 };
 
+template<typename FieldT>
+class EqualityCheckGadget : public gadget<FieldT> {
+private:
+    int n_bits;
+    pb_variable <FieldT> &x, &y, &result;
+    pb_variable <FieldT> *x_dec, *y_dec; // bit decomposition
+    pb_variable <FieldT> *bit_equal; // equality check of each bit
+    pb_variable <FieldT> *aggr_equal; // aggregate the result from bit equal
+
+    DecompositionCheckGadget<FieldT> *decompositionCheckGadgets;
+
+public:
+    EqualityCheckGadget(protoboard <FieldT> &pb, pb_variable <FieldT> &x_, pb_variable <FieldT> &y_,
+                        pb_variable <FieldT> &result_,
+                        int n_bits_ = 32, const std::string &annotation = "") :
+            gadget<FieldT>(pb, annotation), n_bits(n_bits_), x(x_), y(y_), result(result_) {
+
+        decompositionCheckGadgets = (DecompositionCheckGadget<FieldT> *) malloc(sizeof(DecompositionCheckGadget<FieldT>) * 2);
+
+        _init_pb_array(this->pb, x_dec, n_bits, annotation + "x_dec");
+        _init_pb_array(this->pb, y_dec, n_bits, annotation + "y_dec");
+        _init_pb_array(this->pb, bit_equal, n_bits, annotation + "bit_equal");
+        _init_pb_array(this->pb, aggr_equal, n_bits - 1, annotation + "aggr_equal");
+
+        new(decompositionCheckGadgets + 0) DecompositionCheckGadget<FieldT>(pb, &x, x_dec, 1, n_bits, annotation + "decompositionCheckGadgets0");
+        new(decompositionCheckGadgets + 1) DecompositionCheckGadget<FieldT>(pb, &y, y_dec, 1, n_bits, annotation + "decompositionCheckGadgets1");
+    }
+
+    void generate_r1cs_constraints() {
+        decompositionCheckGadgets[0].generate_r1cs_constraints();
+        decompositionCheckGadgets[1].generate_r1cs_constraints();
+        for (int i = 0; i < n_bits; ++i) {
+            add_r1cs(2 * x_dec[i], y_dec[i], x_dec[i] + y_dec[i] + bit_equal[i] - 1); // z_i = x_i == y_i
+        }
+        add_r1cs(bit_equal[0], bit_equal[1], aggr_equal[0]);
+        for (int i = 1; i < n_bits - 1; ++i) {
+            add_r1cs(aggr_equal[i - 1], bit_equal[i + 1], aggr_equal[i]);
+        }
+        add_r1cs(aggr_equal[n_bits - 2], 1, result);
+    }
+
+    void generate_r1cs_witness(unsigned x, unsigned y) {
+        for (int i = 0; i < n_bits; ++i) {
+            eval(x_dec[i]) = (x >> (n_bits - 1 - i)) & 1U;
+            eval(y_dec[i]) = (y >> (n_bits - 1 - i)) & 1U;
+            eval(bit_equal[i]) = eval(x_dec[i]) == eval(y_dec[i]);
+        }
+        eval(aggr_equal[0]) = eval(bit_equal[0]) * eval(bit_equal[1]);
+        for (int i = 1; i < n_bits - 1; ++i) {
+            eval(aggr_equal[i]) = eval(aggr_equal[i - 1]) * eval(bit_equal[i + 1]);
+        }
+    }
+
+    ~EqualityCheckGadget() {
+
+    }
+};
 
 #endif //ZKDT_TOOL_GADGETS_H

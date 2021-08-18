@@ -13,6 +13,7 @@
 #include "hash.h"
 #include "DT/compile.h"
 #include "gadgets/swifft.h"
+#include "ZKP/groth16.h"
 
 using namespace libsnark;
 
@@ -31,24 +32,27 @@ void test_synthetic_dt_batch(int depth = 5, int batch_size = 128) {
     dt->gather_statistics();
 
     std::vector<std::vector<unsigned>> data;
+    std::vector<unsigned> labels;
+
     for (int i = 0; i < batch_size; ++i) {
         data.push_back(std::vector<unsigned>());
         for (int j = 0; j < n_vars; ++j) {
             unsigned x = rand() % threshold;
             data[i].push_back(x);
         }
+        labels.push_back(rand() % depth);
     }
 
     protoboard <FieldT> pb;
     FieldT coef = rand(), challenge_point = rand();
-    DTBatchGadget <FieldT> dtBatchGadget = DTBatchGadget<FieldT>(pb, *dt, data, coef, challenge_point, "dt_batch_gadget");
+    DTBatchGadget <FieldT> dtBatchGadget = DTBatchGadget<FieldT>(pb, *dt, data, labels, coef, challenge_point, "dt_batch_gadget");
     dtBatchGadget.generate_r1cs_constraints();
     dtBatchGadget.generate_r1cs_witness();
     std::cout << "N_constraints: " << pb.num_constraints() << std::endl;
     std::cout << "N_variables: " << pb.num_variables() << std::endl;
     std::cout << "Satisfied?: " << pb.is_satisfied() << std::endl;
 
-    run_r1cs_gg_ppzksnark<ppT>(pb);
+    // run_r1cs_gg_ppzksnark<ppT>(pb);
 }
 
 unsigned max_batch_size = 500;
@@ -141,6 +145,11 @@ void test_real_dt_batch() {
             break;
     }
 
+    std::vector<unsigned> labels;
+    for (int i = 0; i < data.size(); ++i) {
+        labels.push_back(rand() % 5); // some synthetic labels, it's better to read it from the file.
+    }
+
     std::cout << "batch size : " << data.size() << std::endl;
     std::cout << "attribute size: " << data[0].size() << std::endl;
 
@@ -153,7 +162,7 @@ void test_real_dt_batch() {
     protoboard <FieldT> pb;
     FieldT coef = rand(), challenge_point = rand();
 
-    DTBatchGadget <FieldT> dtBatchGadget = DTBatchGadget<FieldT>(pb, *dt, data, coef, challenge_point, "dtBatchGadget");
+    DTBatchGadget <FieldT> dtBatchGadget = DTBatchGadget<FieldT>(pb, *dt, data, labels, coef, challenge_point, "dtBatchGadget");
 
     dtBatchGadget.generate_r1cs_constraints();
     dtBatchGadget.generate_r1cs_witness();
@@ -161,7 +170,7 @@ void test_real_dt_batch() {
     std::cout << "N_variables: " << pb.num_variables() << std::endl;
     std::cout << "Satisfied?: " << pb.is_satisfied() << std::endl;
 
-    run_r1cs_gg_ppzksnark<ppT>(pb);
+    // run_r1cs_gg_ppzksnark<ppT>(pb);
 }
 
 
