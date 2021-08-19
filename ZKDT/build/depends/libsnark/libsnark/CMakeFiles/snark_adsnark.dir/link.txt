@@ -1,2 +1,0 @@
-/usr/bin/ar qc libsnark_adsnark.a  CMakeFiles/snark_adsnark.dir/common/default_types/r1cs_ppzkadsnark_pp.cpp.o
-/usr/bin/ranlib libsnark_adsnark.a

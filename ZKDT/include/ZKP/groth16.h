@@ -9,7 +9,7 @@ using namespace libsnark;
 
 // mostly a wrapper of the Groth16 implementation from libsnark
 template<typename ppT>
-bool run_r1cs_gg_ppzksnark(const protoboard<libff::Fr<ppT>> &pb)
+bool run_r1cs_gg_ppzksnark(const protoboard<libff::Fr<ppT>> &pb, const std::string& name="")
 {
     printf("Generating Keys");
     r1cs_gg_ppzksnark_keypair<ppT> keypair = r1cs_gg_ppzksnark_generator<ppT>(pb.get_constraint_system());
@@ -27,6 +27,14 @@ bool run_r1cs_gg_ppzksnark(const protoboard<libff::Fr<ppT>> &pb)
     const bool ans = r1cs_gg_ppzksnark_verifier_strong_IC<ppT>(keypair.vk, pb.primary_input(), proof);
     printf("\n");
     printf("* The verification result is: %s\n", (ans ? "PASS" : "FAIL"));
+
+    if (name != "") {
+        std::cout << "Saving proof" << std::endl;
+        std::ofstream out(name);
+        out << proof;
+        out.close();
+    }
+
     return ans;
 }
 

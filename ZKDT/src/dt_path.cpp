@@ -47,7 +47,7 @@ void test_synthetic_dt_path(int depth = 100) {
     std::cout << "N_variables: " << pb.num_variables() << std::endl;
     std::cout << "Satisfied?: " << pb.is_satisfied() << std::endl;
 
-    run_r1cs_gg_ppzksnark<ppT>(pb);
+    run_r1cs_gg_ppzksnark<ppT>(pb, "proof_0");
 }
 
 unsigned target_batch_size = 500;
@@ -160,7 +160,7 @@ void test_real_dt_path() {
     std::cout << "N_variables: " << pb.num_variables() << std::endl;
     std::cout << "Satisfied?: " << pb.is_satisfied() << std::endl;
 
-    run_r1cs_gg_ppzksnark<ppT>(pb);
+    run_r1cs_gg_ppzksnark<ppT>(pb, "proof_1");
 }
 
 
